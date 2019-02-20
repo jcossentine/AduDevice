@@ -66,13 +66,13 @@ public class AduDevice extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("coolMethod")) {
-            String message = args.getString("messsage");
+            String message = args.getString(0);
             this.coolMethod(message, callbackContext);
             return true;
         }
         // write to the serial port
 		else if (ACTION_WRITE.equals(action)) {
-			String data = args.getString("data");
+			String data = args.getString(0);
 			aduWrite(data, callbackContext);
 			return true;
         }
