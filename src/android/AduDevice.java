@@ -66,7 +66,7 @@ public class AduDevice extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("coolMethod")) {
-            String message = args.getString(0);
+            String message = args.getString("messsage");
             this.coolMethod(message, callbackContext);
             return true;
         }
@@ -98,8 +98,8 @@ public class AduDevice extends CordovaPlugin {
 	 * @param callbackContext the cordova {@link CallbackContext}
 	 */
     private void aduWrite(final String data, final CallbackContext callbackContext) {
-        if (message != null && message.length() > 0) {
-            callbackContext.success(message);
+        if (data != null && data.length() > 0) {
+            callbackContext.success(data);
         } else {
             callbackContext.error("Expected one non-empty string argument.");
         }
