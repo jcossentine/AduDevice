@@ -184,8 +184,6 @@ public class AduDevice extends CordovaPlugin {
 			}
 		}
 	}
-
-	
 	/**
 	 * Resumed activity handler
 	 * @see org.apache.cordova.CordovaPlugin#onResume(boolean)
@@ -235,6 +233,29 @@ public class AduDevice extends CordovaPlugin {
 		// 	onDeviceStateChange();
 		// }
     }
+        /**
+	 * Destroy activity handler
+	 * @see org.apache.cordova.CordovaPlugin#onDestroy()
+	 */
+	@Override
+	public void onDestroy() {
+
+        try {
+            if(mDeviceConnection != null)
+            {
+                mDeviceConnection.releaseInterface(mAduDevice.getInterface(0));
+                mDeviceConnection.close();
+
+                Log.d(TAG, "Closing ADU");
+            }
+            mDeviceConnection = null;
+        }
+        catch (Exception e) {
+            Log.d(TAG, e.getMessage());
+        }
+		
+		//onDeviceStateChange();
+	}
         //Fires on resume
     // finds the first USB device that matches OnTrak vendor ID 0x0a07 (2567)
     private boolean findAduDevice() {
