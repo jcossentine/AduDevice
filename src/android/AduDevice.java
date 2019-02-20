@@ -92,6 +92,7 @@ public class AduDevice extends CordovaPlugin {
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
+            Log.d("usb receiver data received");
             String action = intent.getAction();
             Log.d(TAG, action);
             if (ACTION_USB_PERMISSION.equals(action)) {
