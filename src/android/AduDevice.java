@@ -135,6 +135,9 @@ public class AduDevice extends CordovaPlugin {
                 Log.d(TAG, "Initialized USB Manager");
                 activity = cordova.getActivity();
                 Log.d(TAG, "Has activity handle - requestPermission EXIT");
+
+
+                
                 callbackContext.success("requestPermission SUCCESS");
             }
         });
@@ -162,5 +165,141 @@ public class AduDevice extends CordovaPlugin {
 
             callbackContext.success("Read you are weird");
 
+    }
+    
+    	/** 
+	 * Paused activity handler
+	 * @see org.apache.cordova.CordovaPlugin#onPause(boolean)
+	 */
+	@Override
+	public void onPause(boolean multitasking) {
+		if (sleepOnPause) {
+			
+			if (mDeviceConnection != null) {
+				try {
+					activity.unregisterReceiver(mUsbReceiver);
+				} catch (Exception e) {
+					// Ignore
+				}
+			}
+		}
 	}
+
+	
+	/**
+	 * Resumed activity handler
+	 * @see org.apache.cordova.CordovaPlugin#onResume(boolean)
+	 */
+	@Override
+	public void onResume(boolean multitasking) {
+
+        Log.d(TAG, "Resumed");
+
+        mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(
+                    ACTION_USB_PERMISSION), 0);
+            IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+            registerReceiver(mUsbReceiver, filter);
+
+            boolean bFoundADU = findAduDevice();
+            Log.d(TAG, "Found ADU: " + bFoundADU);
+		// Log.d(TAG, "Resumed, driver=" + driver);
+		// if (sleepOnPause) {
+		// 	if (driver == null) {
+		// 		Log.d(TAG, "No serial device to resume.");
+		// 	} 
+		// 	else {
+		// 		UsbDeviceConnection connection = manager.openDevice(driver.getDevice());
+		// 		if (connection != null) {
+		// 			// get first port and open it
+		// 			port = driver.getPorts().get(0);
+		// 			try {
+		// 				port.open(connection);
+		// 				port.setParameters(baudRate, dataBits, stopBits, parity);
+		// 				if (setDTR) port.setDTR(true);
+		// 				if (setRTS) port.setRTS(true);
+		// 			}
+		// 			catch (IOException  e) {
+		// 				// deal with error
+		// 				Log.d(TAG, e.getMessage());
+		// 			}
+		// 			Log.d(TAG, "Serial port opened!");
+		// 		}
+		// 		else {
+		// 			Log.d(TAG, "Cannot connect to the device!");
+		// 		}
+		// 		Log.d(TAG, "Serial device: " + driver.getClass().getSimpleName());
+		// 	}
+			
+		// 	onDeviceStateChange();
+		// }
+    }
+        //Fires on resume
+    // finds the first USB device that matches OnTrak vendor ID 0x0a07 (2567)
+    private boolean findAduDevice() {
+        HashMap<String, UsbDevice> deviceList = mManager.getDeviceList();
+        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+        UsbDevice device;
+
+        while (deviceIterator.hasNext()) {
+            device = deviceIterator.next();
+            if (device.getVendorId() == VENDOR_ID_ADU) {
+                mAduDevice = device;
+                String deviceInfoStr =
+                            "VendorID: " + device.getVendorId() + " (" + device.getManufacturerName() + ")\n"
+                        + "ProductID: " + device.getProductId() + " (" + device.getProductName() + ")\n"
+                        + "Serial #: " + device.getSerialNumber() + "\n";
+
+                Log.d(TAG, deviceInfoStr);
+
+                mManager.requestPermission(device, mPermissionIntent);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+    private void openAduDevice(UsbDevice device) {
+        if (VENDOR_ID_ADU == device.getVendorId()) {
+            mAduDevice = device;
+            mDeviceConnection = mManager.openDevice(mAduDevice);
+            if (null == mDeviceConnection) {
+                Log.d(TAG, "could not open device");
+                throw new RuntimeException("not all endpoints found");
+            }
+        }
+
+        Log.d(TAG, "interface count: " + mAduDevice.getInterfaceCount());
+        UsbInterface aduInterface = mAduDevice.getInterface(0);
+        mDeviceConnection.claimInterface(aduInterface, true);
+
+        UsbEndpoint epIn = null;
+        UsbEndpoint epOut = null;
+
+        for (int idx = 0; idx < aduInterface.getEndpointCount(); ++idx ) {
+            UsbEndpoint ep = aduInterface.getEndpoint(idx);
+            if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {
+                if (UsbConstants.USB_DIR_IN == ep.getDirection()) {
+                    epIn = ep;
+                }
+                else if (UsbConstants.USB_DIR_OUT == ep.getDirection()) {
+                    epOut = ep;
+                }
+            }
+        }
+
+        if (epOut == null || epIn == null) {
+            throw new RuntimeException("Could not find both IN and OUT endpoints for ADU device");
+        }
+
+        mEpIn = epIn;
+        mEpOut = epOut;
+
+        Log.d(TAG, "In Address: " + mEpIn.getAddress() + ", Out Address: " + mEpOut.getAddress());
+
+        mReadBuffer = new byte[mEpIn.getMaxPacketSize()];
+        mWriteBuffer = new byte[mEpOut.getMaxPacketSize()];
+    }
 }
