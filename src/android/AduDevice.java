@@ -195,15 +195,15 @@ public class AduDevice extends CordovaPlugin {
 
         Log.d(TAG, "Resumed");
 
-        mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(
+        mPermissionIntent = PendingIntent.getBroadcast(this.activity, 0, new Intent(
                     ACTION_USB_PERMISSION), 0);
-            IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-            filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-            registerReceiver(mUsbReceiver, filter);
+        IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        activity.registerReceiver(mUsbReceiver, filter);
 
-            boolean bFoundADU = findAduDevice();
-            Log.d(TAG, "Found ADU: " + bFoundADU);
+        boolean bFoundADU = findAduDevice();
+        Log.d(TAG, "Found ADU: " + bFoundADU);
 		// Log.d(TAG, "Resumed, driver=" + driver);
 		// if (sleepOnPause) {
 		// 	if (driver == null) {
