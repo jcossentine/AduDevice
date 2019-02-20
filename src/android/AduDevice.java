@@ -64,11 +64,11 @@ public class AduDevice extends CordovaPlugin {
     private boolean sleepOnPause;
 
     public AduDevice(){
-        Log.d(TAG, "Adu Device - CONSTRUCTOR ENTER" + device);
+        Log.d(TAG, "Adu Device - CONSTRUCTOR ENTER");
         mManager = (UsbManager)cordova.getActivity().getSystemService(Context.USB_SERVICE);
         Log.d(TAG, "Initialized USB Manager");
         activity = cordova.getActivity();
-        Log.d(TAG, "Has activity handle - CONSTRUCTOR EXIT" + device);
+        Log.d(TAG, "Has activity handle - CONSTRUCTOR EXIT");
     }
 
     @Override
