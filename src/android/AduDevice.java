@@ -35,7 +35,7 @@ import org.json.JSONObject;
 public class AduDevice extends CordovaPlugin {
 
     // logging tag
-    private final String TAG = HelloWorld.class.getSimpleName();
+    private final String TAG = AduDevice.class.getSimpleName();
     private static final String ACTION_USB_PERMISSION = "cordova.plugin.adudevice.USB_PERMISSION";
 
     // Vendor and product IDs from: http://www.ontrak.net/Nodll.htm
@@ -54,6 +54,7 @@ public class AduDevice extends CordovaPlugin {
     private Activity activity;
 
     // actions definitions
+    private static final String ACTION = "coolMethod";
 	private static final String ACTION_READ = "aduRead";
 	private static final String ACTION_WRITE = "aduWrite";
 	//private static final String ACTION_CLOSE = "closeAduDevice";
@@ -83,7 +84,7 @@ public class AduDevice extends CordovaPlugin {
         return false;
     }
 
-    private void coolMethod(String message, CallbackContext callbackContext) {
+    private void coolMethod(final String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
             callbackContext.success(message);
         } else {
@@ -96,7 +97,7 @@ public class AduDevice extends CordovaPlugin {
 	 * @param data the {@link String} representation of the data to be written on the port
 	 * @param callbackContext the cordova {@link CallbackContext}
 	 */
-    private void aduWrite(String data, final CallbackContext callbackContext) {
+    private void aduWrite(final String data, final CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
             callbackContext.success(message);
         } else {
