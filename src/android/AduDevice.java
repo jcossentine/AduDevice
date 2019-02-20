@@ -90,6 +90,29 @@ public class AduDevice extends CordovaPlugin {
         return false;
     }
 
+    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            Log.d(TAG, action);
+            if (ACTION_USB_PERMISSION.equals(action)) {
+                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+                        && device != null) {
+
+                    Log.d(TAG, "permission granted device " + device);
+                    try {
+                        openAduDevice(device);
+                    } catch(RuntimeException e) {
+                        Log.d(TAG, e.getMessage());
+                    }
+                } else {
+                    Log.d(TAG, "permission denied for device " + device);
+                }
+            }
+        }
+    };
+
     private void coolMethod(final String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
             callbackContext.success(message);
