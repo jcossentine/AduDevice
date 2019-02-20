@@ -11,3 +11,7 @@ exports.aduWrite = function (arg0, success, error) {
 exports.aduRead = function (arg0, success, error) {
     exec(success, error, 'AduDevice', 'aduRead', [arg0]);
 };
+
+exports.requestPermission = function (arg0, success, error) {
+    exec(success, error, 'AduDevice', 'requestPermission', [arg0]);
+};

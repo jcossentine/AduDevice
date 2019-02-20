@@ -54,6 +54,7 @@ public class AduDevice extends CordovaPlugin {
     private Activity activity;
 
     // actions definitions
+    private static final String ACTION_REQUEST_PERMISSION = "requestPermission";
     private static final String ACTION = "coolMethod";
 	private static final String ACTION_READ = "aduRead";
 	private static final String ACTION_WRITE = "aduWrite";
@@ -63,14 +64,6 @@ public class AduDevice extends CordovaPlugin {
 
     private boolean sleepOnPause;
 
-    public AduDevice(){
-        Log.d(TAG, "Adu Device - CONSTRUCTOR ENTER");
-        mManager = (UsbManager)cordova.getActivity().getSystemService(Context.USB_SERVICE);
-        Log.d(TAG, "Initialized USB Manager");
-        activity = cordova.getActivity();
-        Log.d(TAG, "Has activity handle - CONSTRUCTOR EXIT");
-    }
-
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("coolMethod")) {
@@ -78,6 +71,11 @@ public class AduDevice extends CordovaPlugin {
             this.coolMethod(message, callbackContext);
             return true;
         }
+        else if (ACTION_REQUEST_PERMISSION.equals(action)) {
+			//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
+			requestPermission(callbackContext);
+			return true;
+		}
         // write to the serial port
 		else if (ACTION_WRITE.equals(action)) {
 			String data = args.getString(0);
@@ -98,6 +96,24 @@ public class AduDevice extends CordovaPlugin {
         } else {
             callbackContext.error("Expected one non-empty string argument.");
         }
+    }
+
+	/**
+	 * Request permission the the user for the app to use the USB/serial port
+	 * @param callbackContext the cordova {@link CallbackContext}
+	 */
+	private void requestPermission(final CallbackContext callbackContext) {
+		cordova.getThreadPool().execute(new Runnable() {
+			public void run() {
+                Log.d(TAG, "Adu Device - requestPermission ENTER");
+				// get UsbManager from Android
+                mManager = (UsbManager) cordova.getActivity().getSystemService(Context.USB_SERVICE);
+                Log.d(TAG, "Initialized USB Manager");
+                activity = cordova.getActivity();
+                Log.d(TAG, "Has activity handle - requestPermission EXIT");
+                callbackContext.success("requestPermission SUCCESS");
+            }
+        });
     }
 
     /**
