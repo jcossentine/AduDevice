@@ -72,8 +72,8 @@ public class AduDevice extends CordovaPlugin {
         }
         // write to the serial port
 		else if (ACTION_WRITE.equals(action)) {
-			String data = arg_object.getString("data");
-			writeSerial(data, callbackContext);
+			String data = args.getString("data");
+			aduWrite(data, callbackContext);
 			return true;
         }
         // read on the serial port
