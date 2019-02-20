@@ -35,7 +35,7 @@ import org.json.JSONObject;
 public class AduDevice extends CordovaPlugin {
 
     // logging tag
-    private final String TAG = AduDevice.class.getSimpleName();
+    private final String TAG = "ADUDEVICE";//AduDevice.class.getSimpleName()
     private static final String ACTION_USB_PERMISSION = "cordova.plugin.adudevice.USB_PERMISSION";
 
     // Vendor and product IDs from: http://www.ontrak.net/Nodll.htm
