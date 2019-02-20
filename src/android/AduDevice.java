@@ -2,6 +2,28 @@ package cordova.plugin.adudevice;
 
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.PluginResult;
+
+
+///NEW
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbConstants;
+import android.os.Bundle;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.io.IOException;
+
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+
+import android.hardware.usb.*;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
