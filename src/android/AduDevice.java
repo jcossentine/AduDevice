@@ -102,7 +102,7 @@ public class AduDevice extends CordovaPlugin {
 
                     Log.d(TAG, "permission granted device " + device);
                     try {
-                        openAduDevice(device);
+                        //openAduDevice(device);
                     } catch(RuntimeException e) {
                         Log.d(TAG, e.getMessage());
                     }
