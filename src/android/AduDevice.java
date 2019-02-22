@@ -103,7 +103,7 @@ public class AduDevice extends CordovaPlugin {
 
                     Log.d(TAG, "permission granted device " + device);
                     try {
-                        //openAduDevice(device);
+                        openAduDevice(device);
                     } catch(RuntimeException e) {
                         Log.d(TAG, e.getMessage());
                     }
@@ -173,6 +173,7 @@ public class AduDevice extends CordovaPlugin {
 	 */
 	@Override
 	public void onPause(boolean multitasking) {
+        Log.d(TAG, "Pause event");
 		if (sleepOnPause) {
 			
 			if (mDeviceConnection != null) {
@@ -191,7 +192,7 @@ public class AduDevice extends CordovaPlugin {
 	@Override
 	public void onResume(boolean multitasking) {
 
-        Log.d(TAG, "Resumed");
+        Log.d(TAG, "Resume event");
 
         mPermissionIntent = PendingIntent.getBroadcast(this.activity, 0, new Intent(
                     ACTION_USB_PERMISSION), 0);
