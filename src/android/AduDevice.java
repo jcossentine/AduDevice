@@ -149,13 +149,35 @@ public class AduDevice extends CordovaPlugin {
 	 * @param callbackContext the cordova {@link CallbackContext}
 	 */
     private void aduWrite(final String data, final CallbackContext callbackContext) {
-        if (data != null && data.length() > 0) {
-            callbackContext.success(data);
-        } else {
-            callbackContext.error("Expected one non-empty string argument.");
+        if (mDeviceConnection == null) {
+            callbackContext.error("Writing a closed connection.");
+        }
+        else {
+            try {
+                Log.d(TAG, data);
+                createAduCommand(data, mWriteBuffer);
+                
+                int numBytesSent = mDeviceConnection.bulkTransfer(mEpOut, mWriteBuffer, mWriteBuffer.length, 0 );
+
+                if (numBytesSent < 0) {
+                    callbackContext.error("Write Error: " + numBytesSent);
+                }
+                else {
+                    callbackContext.success();
+                }
+            }
+            catch (Exception e) {
+                // deal with error
+                Log.d(TAG, e.getMessage());
+                callbackContext.error(e.getMessage());
+            }
         }
     }
-    
+    private void createAduCommand(String commandStr, byte[] buffer) {
+        Arrays.fill(buffer, (byte) 0);
+        buffer[0] = (byte) 0x01;
+        System.arraycopy(commandStr.getBytes(), 0, mWriteBuffer, 1, commandStr.length());
+    }
         /**
 	 * Write on the serial port
 	 * @param data the {@link String} representation of the data to be written on the port
@@ -163,7 +185,7 @@ public class AduDevice extends CordovaPlugin {
 	 */
     private void aduRead(final CallbackContext callbackContext) {
 
-            callbackContext.success("Read you are weird");
+            callbackContext.success("You are weird");
 
     }
     
