@@ -12,5 +12,6 @@
       </config-file>
       <config-file parent="/*" target="AndroidManifest.xml" />
       <source-file src="src/android/AduDevice.java" target-dir="src/cordova/plugin/adudevice/AduDevice" />
+      <source-file src="src/android/UsbBroadcastReceiver.java" target-dir="src/cordova/plugin/adudevice/AduDevice" />
    </platform>
 </plugin>
