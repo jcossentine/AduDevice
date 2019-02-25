@@ -39,7 +39,8 @@ public class UsbBroadcastReceiver extends BroadcastReceiver {
 	 */
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		String action = intent.getAction();
+        String action = intent.getAction();
+        Log.d(TAG, action);
 		if (USB_PERMISSION.equals(action)) {
 			// deal with the user answer about the permission
 			if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {

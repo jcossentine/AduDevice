@@ -51,10 +51,11 @@ public class AduDevice extends CordovaPlugin {
     private byte[] mWriteBuffer;
     private byte[] mReadBuffer;
 
-    private Activity activity;
+    //private Activity activity;
 
     // actions definitions
     private static final String ACTION_REQUEST_PERMISSION = "requestPermission";
+    private static final String ACTION_OPEN = "openSerial";
     private static final String ACTION = "coolMethod";
 	private static final String ACTION_READ = "aduRead";
 	private static final String ACTION_WRITE = "aduWrite";
@@ -75,6 +76,11 @@ public class AduDevice extends CordovaPlugin {
 			//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
 			requestPermission(callbackContext);
 			return true;
+        }
+        else if (ACTION_OPEN.equals(action)) {
+			//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
+			openAduDevice(callbackContext);
+			return true;
 		}
         // write to the serial port
 		else if (ACTION_WRITE.equals(action)) {
@@ -90,29 +96,29 @@ public class AduDevice extends CordovaPlugin {
         return false;
     }
 
-    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "usb receiver data received");
-            String action = intent.getAction();
-            Log.d(TAG, action);
-            if (ACTION_USB_PERMISSION.equals(action)) {
-                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+    // private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+    //     public void onReceive(Context context, Intent intent) {
+    //         Log.d(TAG, "usb receiver data received");
+    //         String action = intent.getAction();
+    //         Log.d(TAG, action);
+    //         if (ACTION_USB_PERMISSION.equals(action)) {
+    //             UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-                        && device != null) {
+    //             if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+    //                     && device != null) {
 
-                    Log.d(TAG, "permission granted device " + device);
-                    try {
-                        openAduDevice(device);
-                    } catch(RuntimeException e) {
-                        Log.d(TAG, e.getMessage());
-                    }
-                } else {
-                    Log.d(TAG, "permission denied for device " + device);
-                }
-            }
-        }
-    };
+    //                 Log.d(TAG, "permission granted device " + device);
+    //                 try {
+    //                     openAduDevice(device);
+    //                 } catch(RuntimeException e) {
+    //                     Log.d(TAG, e.getMessage());
+    //                 }
+    //             } else {
+    //                 Log.d(TAG, "permission denied for device " + device);
+    //             }
+    //         }
+    //     }
+    // };
 
     private void coolMethod(final String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
@@ -133,12 +139,21 @@ public class AduDevice extends CordovaPlugin {
 				// get UsbManager from Android
                 mManager = (UsbManager) cordova.getActivity().getSystemService(Context.USB_SERVICE);
                 Log.d(TAG, "Initialized USB Manager");
-                activity = cordova.getActivity();
-                Log.d(TAG, "Has activity handle - requestPermission EXIT");
 
+                mPermissionIntent = PendingIntent.getBroadcast(cordova.getActivity(), 0, new Intent(UsbBroadcastReceiver.USB_PERMISSION), 0);
+                // and a filter on the permission we ask
+                IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+                filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+                filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
 
                 
-                callbackContext.success("requestPermission SUCCESS");
+                // this broadcast receiver will handle the permission results
+                UsbBroadcastReceiver usbReceiver = new UsbBroadcastReceiver(callbackContext, cordova.getActivity());
+                cordova.getActivity().registerReceiver(mUsbReceiver, filter);
+                // finally ask for the permission
+                manager.requestPermission(device, pendingIntent);
+                
+                
             }
         });
     }
@@ -189,7 +204,7 @@ public class AduDevice extends CordovaPlugin {
 
     }
     
-    	/** 
+    /** 
 	 * Paused activity handler
 	 * @see org.apache.cordova.CordovaPlugin#onPause(boolean)
 	 */
@@ -200,7 +215,7 @@ public class AduDevice extends CordovaPlugin {
 			
 			if (mDeviceConnection != null) {
 				try {
-					activity.unregisterReceiver(mUsbReceiver);
+					cordova.getActivity().unregisterReceiver(mUsbReceiver);
 				} catch (Exception e) {
 					// Ignore
 				}
@@ -221,42 +236,13 @@ public class AduDevice extends CordovaPlugin {
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        activity.registerReceiver(mUsbReceiver, filter);
+        cordova.getActivity().registerReceiver(mUsbReceiver, filter);
 
         boolean bFoundADU = findAduDevice();
         Log.d(TAG, "Found ADU: " + bFoundADU);
-		// Log.d(TAG, "Resumed, driver=" + driver);
-		// if (sleepOnPause) {
-		// 	if (driver == null) {
-		// 		Log.d(TAG, "No serial device to resume.");
-		// 	} 
-		// 	else {
-		// 		UsbDeviceConnection connection = manager.openDevice(driver.getDevice());
-		// 		if (connection != null) {
-		// 			// get first port and open it
-		// 			port = driver.getPorts().get(0);
-		// 			try {
-		// 				port.open(connection);
-		// 				port.setParameters(baudRate, dataBits, stopBits, parity);
-		// 				if (setDTR) port.setDTR(true);
-		// 				if (setRTS) port.setRTS(true);
-		// 			}
-		// 			catch (IOException  e) {
-		// 				// deal with error
-		// 				Log.d(TAG, e.getMessage());
-		// 			}
-		// 			Log.d(TAG, "Serial port opened!");
-		// 		}
-		// 		else {
-		// 			Log.d(TAG, "Cannot connect to the device!");
-		// 		}
-		// 		Log.d(TAG, "Serial device: " + driver.getClass().getSimpleName());
-		// 	}
-			
-		// 	onDeviceStateChange();
-		// }
+
     }
-        /**
+    /**
 	 * Destroy activity handler
 	 * @see org.apache.cordova.CordovaPlugin#onDestroy()
 	 */
@@ -305,6 +291,20 @@ public class AduDevice extends CordovaPlugin {
 
         return false;
     }
+
+	// /**
+	//  * Request permission the the user for the app to use the USB/serial port
+	//  * @param callbackContext the cordova {@link CallbackContext}
+	//  */
+    // private openSerial(final CallbackContext callbackContext) {
+    //     cordova.getThreadPool().execute(new Runnable() {
+    //         public void run() {
+
+    //         }
+    //     });
+    // }
+
+
     private void openAduDevice(UsbDevice device) {
         if (VENDOR_ID_ADU == device.getVendorId()) {
             mAduDevice = device;
