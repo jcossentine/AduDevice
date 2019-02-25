@@ -159,6 +159,12 @@ public class AduDevice extends CordovaPlugin {
                 // finally ask for the permission
                 mManager.requestPermission(mAduDevice, mPermissionIntent);
                 
+
+                try {
+                    openAduDevice(mAduDevice);
+                } catch(RuntimeException e) {
+                    Log.d(TAG, e.getMessage());
+                }
                 
             }
         });
