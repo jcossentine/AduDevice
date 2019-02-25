@@ -77,11 +77,11 @@ public class AduDevice extends CordovaPlugin {
 			requestPermission(callbackContext);
 			return true;
         }
-        else if (ACTION_OPEN.equals(action)) {
-			//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
-			openAduDevice(callbackContext);
-			return true;
-		}
+        // else if (ACTION_OPEN.equals(action)) {
+		// 	//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
+		// 	openAduDevice(callbackContext);
+		// 	return true;
+		// }
         // write to the serial port
 		else if (ACTION_WRITE.equals(action)) {
 			String data = args.getString(0);
@@ -140,7 +140,7 @@ public class AduDevice extends CordovaPlugin {
                 mManager = (UsbManager) cordova.getActivity().getSystemService(Context.USB_SERVICE);
                 Log.d(TAG, "Initialized USB Manager");
 
-                mPermissionIntent = PendingIntent.getBroadcast(cordova.getActivity(), 0, new Intent(UsbBroadcastReceiver.USB_PERMISSION), 0);
+                mPermissionIntent = PendingIntent.getBroadcast(cordova.getActivity(), 0, new Intent(ACTION_USB_PERMISSION), 0);
                 // and a filter on the permission we ask
                 IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
                 filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
