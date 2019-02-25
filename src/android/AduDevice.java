@@ -48,6 +48,7 @@ public class AduDevice extends CordovaPlugin {
     private UsbDevice mAduDevice;
     private UsbEndpoint mEpIn;
     private UsbEndpoint mEpOut;
+    private UsbBroadcastReceiver mUsbReceiver;
     private byte[] mWriteBuffer;
     private byte[] mReadBuffer;
 
@@ -148,7 +149,7 @@ public class AduDevice extends CordovaPlugin {
 
                 
                 // this broadcast receiver will handle the permission results
-                UsbBroadcastReceiver usbReceiver = new UsbBroadcastReceiver(callbackContext, cordova.getActivity());
+                mUsbReceiver = new UsbBroadcastReceiver(callbackContext, cordova.getActivity());
                 cordova.getActivity().registerReceiver(mUsbReceiver, filter);
                 // finally ask for the permission
                 manager.requestPermission(device, pendingIntent);
@@ -231,7 +232,7 @@ public class AduDevice extends CordovaPlugin {
 
         Log.d(TAG, "Resume event");
 
-        mPermissionIntent = PendingIntent.getBroadcast(this.activity, 0, new Intent(
+        mPermissionIntent = PendingIntent.getBroadcast(cordova.getActivity(), 0, new Intent(
                     ACTION_USB_PERMISSION), 0);
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
