@@ -151,8 +151,13 @@ public class AduDevice extends CordovaPlugin {
                 // this broadcast receiver will handle the permission results
                 mUsbReceiver = new UsbBroadcastReceiver(callbackContext, cordova.getActivity());
                 cordova.getActivity().registerReceiver(mUsbReceiver, filter);
+
+
+                boolean bFoundADU = findAduDevice();
+                Log.d(TAG, "Found ADU: " + bFoundADU);
+
                 // finally ask for the permission
-                manager.requestPermission(device, pendingIntent);
+                mManager.requestPermission(mAduDevice, mPermissionIntent);
                 
                 
             }
