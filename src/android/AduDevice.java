@@ -78,11 +78,11 @@ public class AduDevice extends CordovaPlugin {
 			requestPermission(callbackContext);
 			return true;
         }
-        // else if (ACTION_OPEN.equals(action)) {
-		// 	//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
-		// 	openAduDevice(callbackContext);
-		// 	return true;
-		// }
+        else if (ACTION_OPEN.equals(action)) {
+			//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
+			openAduDevice(callbackContext);
+			return true;
+		}
         // write to the serial port
 		else if (ACTION_WRITE.equals(action)) {
 			String data = args.getString(0);
@@ -144,27 +144,15 @@ public class AduDevice extends CordovaPlugin {
                 mPermissionIntent = PendingIntent.getBroadcast(cordova.getActivity(), 0, new Intent(ACTION_USB_PERMISSION), 0);
                 // and a filter on the permission we ask
                 IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-                filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-                filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+                //filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+                //filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
 
-                
                 // this broadcast receiver will handle the permission results
                 mUsbReceiver = new UsbBroadcastReceiver(callbackContext, cordova.getActivity());
                 cordova.getActivity().registerReceiver(mUsbReceiver, filter);
 
-
-                boolean bFoundADU = findAduDevice();
-                Log.d(TAG, "Found ADU: " + bFoundADU);
-
                 // finally ask for the permission
                 mManager.requestPermission(mAduDevice, mPermissionIntent);
-                
-
-                try {
-                    openAduDevice(mAduDevice);
-                } catch(RuntimeException e) {
-                    Log.d(TAG, e.getMessage());
-                }
                 
             }
         });
@@ -308,54 +296,60 @@ public class AduDevice extends CordovaPlugin {
 	//  * Request permission the the user for the app to use the USB/serial port
 	//  * @param callbackContext the cordova {@link CallbackContext}
 	//  */
-    // private openSerial(final CallbackContext callbackContext) {
-    //     cordova.getThreadPool().execute(new Runnable() {
-    //         public void run() {
+    private void openAduDevice(final CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                
+                boolean bFoundADU = findAduDevice();
+                Log.d(TAG, "Found ADU: " + bFoundADU);
 
-    //         }
-    //     });
-    // }
 
+                if(bFoundADU){
+                    mDeviceConnection = mManager.openDevice(mAduDevice);
+                    if (null == mDeviceConnection) {
+                        Log.d(TAG, "could not open device");
+                        callbackContext.error("not all endpoints found");
+                    }
 
-    private void openAduDevice(UsbDevice device) {
-        if (VENDOR_ID_ADU == device.getVendorId()) {
-            mAduDevice = device;
-            mDeviceConnection = mManager.openDevice(mAduDevice);
-            if (null == mDeviceConnection) {
-                Log.d(TAG, "could not open device");
-                throw new RuntimeException("not all endpoints found");
-            }
-        }
+                    Log.d(TAG, "interface count: " + mAduDevice.getInterfaceCount());
+                    UsbInterface aduInterface = mAduDevice.getInterface(0);
+                    mDeviceConnection.claimInterface(aduInterface, true);
 
-        Log.d(TAG, "interface count: " + mAduDevice.getInterfaceCount());
-        UsbInterface aduInterface = mAduDevice.getInterface(0);
-        mDeviceConnection.claimInterface(aduInterface, true);
+                    UsbEndpoint epIn = null;
+                    UsbEndpoint epOut = null;
 
-        UsbEndpoint epIn = null;
-        UsbEndpoint epOut = null;
+                    for (int idx = 0; idx < aduInterface.getEndpointCount(); ++idx ) {
+                        UsbEndpoint ep = aduInterface.getEndpoint(idx);
+                        if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {
+                            if (UsbConstants.USB_DIR_IN == ep.getDirection()) {
+                                epIn = ep;
+                            }
+                            else if (UsbConstants.USB_DIR_OUT == ep.getDirection()) {
+                                epOut = ep;
+                            }
+                        }
+                    }
 
-        for (int idx = 0; idx < aduInterface.getEndpointCount(); ++idx ) {
-            UsbEndpoint ep = aduInterface.getEndpoint(idx);
-            if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {
-                if (UsbConstants.USB_DIR_IN == ep.getDirection()) {
-                    epIn = ep;
+                    if (epOut == null || epIn == null) {
+                        callbackContext.error("Could not find both IN and OUT endpoints for ADU device");
+                        //throw new RuntimeException("Could not find both IN and OUT endpoints for ADU device");
+                    }
+
+                    mEpIn = epIn;
+                    mEpOut = epOut;
+
+                    Log.d(TAG, "In Address: " + mEpIn.getAddress() + ", Out Address: " + mEpOut.getAddress());
+
+                    mReadBuffer = new byte[mEpIn.getMaxPacketSize()];
+                    mWriteBuffer = new byte[mEpOut.getMaxPacketSize()];
+
+                    callbackContext.success("Serial port opened!");
                 }
-                else if (UsbConstants.USB_DIR_OUT == ep.getDirection()) {
-                    epOut = ep;
+                else{
+                    callbackContext.error("Cannot find Adu fevice!");
                 }
+                
             }
-        }
-
-        if (epOut == null || epIn == null) {
-            throw new RuntimeException("Could not find both IN and OUT endpoints for ADU device");
-        }
-
-        mEpIn = epIn;
-        mEpOut = epOut;
-
-        Log.d(TAG, "In Address: " + mEpIn.getAddress() + ", Out Address: " + mEpOut.getAddress());
-
-        mReadBuffer = new byte[mEpIn.getMaxPacketSize()];
-        mWriteBuffer = new byte[mEpOut.getMaxPacketSize()];
+        });
     }
 }

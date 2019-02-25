@@ -15,3 +15,7 @@ exports.aduRead = function (arg0, success, error) {
 exports.requestPermission = function (arg0, success, error) {
     exec(success, error, 'AduDevice', 'requestPermission', [arg0]);
 };
+
+exports.openAduDevice = function (arg0, success, error) {
+    exec(success, error, 'AduDevice', 'requestPermission', [arg0]);
+};
