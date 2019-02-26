@@ -142,11 +142,13 @@ public class AduDevice extends CordovaPlugin {
                 Log.d(TAG, "Initialized USB Manager");
 
                 mPermissionIntent = PendingIntent.getBroadcast(cordova.getActivity(), 0, new Intent(ACTION_USB_PERMISSION), 0);
+
+                Log.d(TAG, "permissision intent");
                 // and a filter on the permission we ask
                 IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
                 //filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
                 //filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-
+                Log.d(TAG, "filter");
                 // this broadcast receiver will handle the permission results
                 mUsbReceiver = new UsbBroadcastReceiver(callbackContext, cordova.getActivity());
                 cordova.getActivity().registerReceiver(mUsbReceiver, filter);
