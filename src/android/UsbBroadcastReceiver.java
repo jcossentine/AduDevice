@@ -12,7 +12,7 @@ import android.util.Log;
 
 public class UsbBroadcastReceiver extends BroadcastReceiver {
 	// logging tag
-	private final String TAG = UsbBroadcastReceiver.class.getSimpleName();
+	private final String TAG = "ADUDEVICE";
 	// usb permission tag name
 	public static final String USB_PERMISSION ="cordova.plugin.adudevice.USB_PERMISSION";
 	// cordova callback context to notify the success/error to the cordova app
