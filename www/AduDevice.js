@@ -19,3 +19,11 @@ exports.requestPermission = function (arg0, success, error) {
 exports.openAduDevice = function (arg0, success, error) {
     exec(success, error, 'AduDevice', 'openAduDevice', [arg0]);
 };
+
+exports.closeAduDevice = function (arg0, success, error) {
+    exec(success, error, 'AduDevice', 'closeAduDevice', [arg0]);
+};
+
+
+
+

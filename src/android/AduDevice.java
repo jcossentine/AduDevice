@@ -58,7 +58,7 @@ public class AduDevice extends CordovaPlugin {
     private static final String ACTION = "coolMethod";
 	private static final String ACTION_READ = "aduRead";
 	private static final String ACTION_WRITE = "aduWrite";
-	//private static final String ACTION_CLOSE = "closeAduDevice";
+	private static final String ACTION_CLOSE = "closeAduDevice";
     //private static final String ACTION_READ_CALLBACK = "registerReadCallback";
     
 
@@ -79,6 +79,11 @@ public class AduDevice extends CordovaPlugin {
         else if (ACTION_OPEN.equals(action)) {
 			//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
 			openAduDevice(callbackContext);
+			return true;
+        }
+        else if (ACTION_CLOSE.equals(action)) {
+			//JSONObject opts = arg_object.has("opts")? arg_object.getJSONObject("opts") : new JSONObject();
+			closeAduDevice(callbackContext);
 			return true;
 		}
         // write to the serial port
@@ -177,6 +182,20 @@ public class AduDevice extends CordovaPlugin {
                         callbackContext.error(e.getMessage());
                     }
                 }
+            }
+        });
+    }
+	/**
+	 * Close the serial port
+	 * @param callbackContext the cordova {@link CallbackContext}
+	 */
+	private void closeAduDevice(final CallbackContext callbackContext) {
+		cordova.getThreadPool().execute(new Runnable() {
+            public void run() {
+                mDeviceConnection.releaseInterface(mAduDevice.getInterface(0));
+                mDeviceConnection.close();
+                mDeviceConnection = null;
+                Log.d(TAG, "Closing ADU");
             }
         });
     }
