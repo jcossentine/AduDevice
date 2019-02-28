@@ -205,8 +205,7 @@ public class AduDevice extends CordovaPlugin {
         System.arraycopy(commandStr.getBytes(), 0, mWriteBuffer, 1, commandStr.length());
     }
     /**
-	 * Write on the serial port
-	 * @param data the {@link String} representation of the data to be written on the port
+	 * Read on the serial port
 	 * @param callbackContext the cordova {@link CallbackContext}
 	 */
     private void aduRead(final CallbackContext callbackContext) {
