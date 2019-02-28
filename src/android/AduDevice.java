@@ -4,8 +4,6 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
 
-
-///NEW
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.hardware.usb.UsbDeviceConnection;
@@ -35,7 +33,7 @@ import org.json.JSONObject;
 public class AduDevice extends CordovaPlugin {
 
     // logging tag
-    private final String TAG = "ADUDEVICE";//AduDevice.class.getSimpleName()
+    private final String TAG = "ADUDEVICE";
     private static final String ACTION_USB_PERMISSION = "cordova.plugin.adudevice.USB_PERMISSION";
 
     // Vendor and product IDs from: http://www.ontrak.net/Nodll.htm
@@ -97,30 +95,6 @@ public class AduDevice extends CordovaPlugin {
         return false;
     }
 
-    // private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-    //     public void onReceive(Context context, Intent intent) {
-    //         Log.d(TAG, "usb receiver data received");
-    //         String action = intent.getAction();
-    //         Log.d(TAG, action);
-    //         if (ACTION_USB_PERMISSION.equals(action)) {
-    //             UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-    //             if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-    //                     && device != null) {
-
-    //                 Log.d(TAG, "permission granted device " + device);
-    //                 try {
-    //                     openAduDevice(device);
-    //                 } catch(RuntimeException e) {
-    //                     Log.d(TAG, e.getMessage());
-    //                 }
-    //             } else {
-    //                 Log.d(TAG, "permission denied for device " + device);
-    //             }
-    //         }
-    //     }
-    // };
-
     private void coolMethod(final String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
             callbackContext.success(message);
@@ -178,45 +152,70 @@ public class AduDevice extends CordovaPlugin {
 	 * @param callbackContext the cordova {@link CallbackContext}
 	 */
     private void aduWrite(final String data, final CallbackContext callbackContext) {
-        if (mDeviceConnection == null) {
-            callbackContext.error("Writing a closed connection.");
-        }
-        else {
-            try {
-                Log.d(TAG, data);
-                createAduCommand(data, mWriteBuffer);
-                
-                int numBytesSent = mDeviceConnection.bulkTransfer(mEpOut, mWriteBuffer, mWriteBuffer.length, 0 );
-
-                if (numBytesSent < 0) {
-                    callbackContext.error("Write Error: " + numBytesSent);
+        cordova.getThreadPool().execute(new Runnable() {
+			public void run() {
+                if (mDeviceConnection == null) {
+                    callbackContext.error("Writing a closed connection.");
                 }
                 else {
-                    callbackContext.success();
+                    try {
+                        Log.d(TAG, data);
+                        createAduCommand(data, mWriteBuffer);
+                        
+                        int numBytesSent = mDeviceConnection.bulkTransfer(mEpOut, mWriteBuffer, mWriteBuffer.length, 0 );
+
+                        if (numBytesSent < 0) {
+                            callbackContext.error("Write Error: " + numBytesSent);
+                        }
+                        else {
+                            callbackContext.success();
+                        }
+                    }
+                    catch (Exception e) {
+                        // deal with error
+                        Log.d(TAG, e.getMessage());
+                        callbackContext.error(e.getMessage());
+                    }
                 }
             }
-            catch (Exception e) {
-                // deal with error
-                Log.d(TAG, e.getMessage());
-                callbackContext.error(e.getMessage());
-            }
-        }
+        });
     }
     private void createAduCommand(String commandStr, byte[] buffer) {
         Arrays.fill(buffer, (byte) 0);
         buffer[0] = (byte) 0x01;
         System.arraycopy(commandStr.getBytes(), 0, mWriteBuffer, 1, commandStr.length());
     }
-        /**
+    /**
 	 * Write on the serial port
 	 * @param data the {@link String} representation of the data to be written on the port
 	 * @param callbackContext the cordova {@link CallbackContext}
 	 */
     private void aduRead(final CallbackContext callbackContext) {
-
-            callbackContext.success("You are weird");
-
+        cordova.getThreadPool().execute(new Runnable() {
+			public void run() {
+                
+                int numBytesRead = mDeviceConnection.bulkTransfer(mEpIn, mReadBuffer, mReadBuffer.length, 500 );
+                
+                if(numBytesRead < 0)
+                {
+                    if(numBytesRead == -1){
+                        Log.d(TAG, "Timeout Error");
+                        callbackContext.error("Timeout Error");
+                    }
+                    else{
+                        Log.d(TAG, "Error: " + numBytesRead);
+                        callbackContext.error("Error: " + numBytesRead);
+                    }
+                    
+                }else{
+                    Log.d(TAG, "Received: " + (char)mReadBuffer[1]);
+                    callbackContext.success((char)mReadBuffer[1]);
+                }
+            }
+        });
     }
+
+
     
     /** 
 	 * Paused activity handler
