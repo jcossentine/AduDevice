@@ -17,5 +17,5 @@ exports.requestPermission = function (arg0, success, error) {
 };
 
 exports.openAduDevice = function (arg0, success, error) {
-    exec(success, error, 'AduDevice', 'requestPermission', [arg0]);
+    exec(success, error, 'AduDevice', 'openAduDevice', [arg0]);
 };
