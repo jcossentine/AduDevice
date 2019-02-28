@@ -56,7 +56,7 @@ public class AduDevice extends CordovaPlugin {
 
     // actions definitions
     private static final String ACTION_REQUEST_PERMISSION = "requestPermission";
-    private static final String ACTION_OPEN = "openSerial";
+    private static final String ACTION_OPEN = "openAduDevice";
     private static final String ACTION = "coolMethod";
 	private static final String ACTION_READ = "aduRead";
 	private static final String ACTION_WRITE = "aduWrite";
