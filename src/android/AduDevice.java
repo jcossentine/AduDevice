@@ -226,8 +226,10 @@ public class AduDevice extends CordovaPlugin {
                     }
                     
                 }else{
-                    Log.d(TAG, "Received: " + (char)mReadBuffer[1]);
-                    callbackContext.success((char)mReadBuffer[1]);
+
+                    String aString = new String(mReadBuffer);
+                    Log.d(TAG, "Received: " + aString);
+                    callbackContext.success(aString);
                 }
             }
         });
