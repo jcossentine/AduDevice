@@ -314,55 +314,58 @@ public class AduDevice extends CordovaPlugin {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 
-                boolean bFoundADU = findAduDevice();
-                Log.d(TAG, "Found ADU: " + bFoundADU);
+                try{
+                    boolean bFoundADU = findAduDevice();
+                    Log.d(TAG, "Found ADU: " + bFoundADU);
 
+                    if(bFoundADU){
+                        mDeviceConnection = mManager.openDevice(mAduDevice);
+                        if (null == mDeviceConnection) {
+                            Log.d(TAG, "could not open device");
+                            callbackContext.error("not all endpoints found");
+                        }
 
-                if(bFoundADU){
-                    mDeviceConnection = mManager.openDevice(mAduDevice);
-                    if (null == mDeviceConnection) {
-                        Log.d(TAG, "could not open device");
-                        callbackContext.error("not all endpoints found");
-                    }
+                        Log.d(TAG, "interface count: " + mAduDevice.getInterfaceCount());
+                        UsbInterface aduInterface = mAduDevice.getInterface(0);
+                        mDeviceConnection.claimInterface(aduInterface, true);
 
-                    Log.d(TAG, "interface count: " + mAduDevice.getInterfaceCount());
-                    UsbInterface aduInterface = mAduDevice.getInterface(0);
-                    mDeviceConnection.claimInterface(aduInterface, true);
+                        UsbEndpoint epIn = null;
+                        UsbEndpoint epOut = null;
 
-                    UsbEndpoint epIn = null;
-                    UsbEndpoint epOut = null;
-
-                    for (int idx = 0; idx < aduInterface.getEndpointCount(); ++idx ) {
-                        UsbEndpoint ep = aduInterface.getEndpoint(idx);
-                        if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {
-                            if (UsbConstants.USB_DIR_IN == ep.getDirection()) {
-                                epIn = ep;
-                            }
-                            else if (UsbConstants.USB_DIR_OUT == ep.getDirection()) {
-                                epOut = ep;
+                        for (int idx = 0; idx < aduInterface.getEndpointCount(); ++idx ) {
+                            UsbEndpoint ep = aduInterface.getEndpoint(idx);
+                            if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {
+                                if (UsbConstants.USB_DIR_IN == ep.getDirection()) {
+                                    epIn = ep;
+                                }
+                                else if (UsbConstants.USB_DIR_OUT == ep.getDirection()) {
+                                    epOut = ep;
+                                }
                             }
                         }
+
+                        if (epOut == null || epIn == null) {
+                            callbackContext.error("Could not find both IN and OUT endpoints for ADU device");
+                            //throw new RuntimeException("Could not find both IN and OUT endpoints for ADU device");
+                        }
+
+                        mEpIn = epIn;
+                        mEpOut = epOut;
+
+                        Log.d(TAG, "In Address: " + mEpIn.getAddress() + ", Out Address: " + mEpOut.getAddress());
+
+                        mReadBuffer = new byte[mEpIn.getMaxPacketSize()];
+                        mWriteBuffer = new byte[mEpOut.getMaxPacketSize()];
+
+                        callbackContext.success("Serial port opened!");
                     }
-
-                    if (epOut == null || epIn == null) {
-                        callbackContext.error("Could not find both IN and OUT endpoints for ADU device");
-                        //throw new RuntimeException("Could not find both IN and OUT endpoints for ADU device");
+                    else{
+                        callbackContext.error("Cannot find Adu fevice!");
                     }
-
-                    mEpIn = epIn;
-                    mEpOut = epOut;
-
-                    Log.d(TAG, "In Address: " + mEpIn.getAddress() + ", Out Address: " + mEpOut.getAddress());
-
-                    mReadBuffer = new byte[mEpIn.getMaxPacketSize()];
-                    mWriteBuffer = new byte[mEpOut.getMaxPacketSize()];
-
-                    callbackContext.success("Serial port opened!");
-                }
-                else{
+                }catch(RuntimeException e){
+                    Log.d(TAG, e.getMessage());
                     callbackContext.error("Cannot find Adu fevice!");
                 }
-                
             }
         });
     }
