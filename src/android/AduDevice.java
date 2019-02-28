@@ -194,7 +194,7 @@ public class AduDevice extends CordovaPlugin {
         cordova.getThreadPool().execute(new Runnable() {
 			public void run() {
                 
-                int numBytesRead = mDeviceConnection.bulkTransfer(mEpIn, mReadBuffer, mReadBuffer.length, 500 );
+                int numBytesRead = doAduRead(mReadBuffer);
                 
                 if(numBytesRead < 0)
                 {
@@ -215,7 +215,10 @@ public class AduDevice extends CordovaPlugin {
         });
     }
 
-
+    public int doAduRead(byte[] buffer){
+        int numBytesRead = mDeviceConnection.bulkTransfer(mEpIn, buffer, buffer.length, 500 );
+        return numBytesRead;
+    }
     
     /** 
 	 * Paused activity handler
