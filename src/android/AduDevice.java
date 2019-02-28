@@ -146,15 +146,27 @@ public class AduDevice extends CordovaPlugin {
                 Log.d(TAG, "permissision intent");
                 // and a filter on the permission we ask
                 IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-                //filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-                //filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+                filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+                filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
                 Log.d(TAG, "filter");
-                // this broadcast receiver will handle the permission results
-                mUsbReceiver = new UsbBroadcastReceiver(callbackContext, cordova.getActivity());
-                cordova.getActivity().registerReceiver(mUsbReceiver, filter);
 
-                // finally ask for the permission
-                mManager.requestPermission(mAduDevice, mPermissionIntent);
+
+
+                boolean bFoundADU = findAduDevice();
+                Log.d(TAG, "Found ADU: " + bFoundADU);
+
+                if(bFoundADU){
+
+                    // this broadcast receiver will handle the permission results
+                    mUsbReceiver = new UsbBroadcastReceiver(callbackContext, cordova.getActivity());
+                    cordova.getActivity().registerReceiver(mUsbReceiver, filter);
+
+                    // finally ask for the permission
+                    mManager.requestPermission(mAduDevice, mPermissionIntent);
+                }
+                else{
+                    callbackContext.error("No device available!");
+                }
                 
             }
         });
