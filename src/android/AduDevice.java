@@ -192,10 +192,19 @@ public class AduDevice extends CordovaPlugin {
 	private void closeAduDevice(final CallbackContext callbackContext) {
 		cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                mDeviceConnection.releaseInterface(mAduDevice.getInterface(0));
-                mDeviceConnection.close();
-                mDeviceConnection = null;
-                Log.d(TAG, "Closing ADU");
+                try {
+                    if(mDeviceConnection != null)
+                    {
+                        mDeviceConnection.releaseInterface(mAduDevice.getInterface(0));
+                        mDeviceConnection.close();
+        
+                        Log.d(TAG, "Closing ADU");
+                    }
+                    mDeviceConnection = null;
+                }
+                catch (Exception e) {
+                    Log.d(TAG, e.getMessage());
+                }
             }
         });
     }
@@ -241,9 +250,9 @@ public class AduDevice extends CordovaPlugin {
     }
     
     /** 
-	 * Paused activity handler
-	 * @see org.apache.cordova.CordovaPlugin#onPause(boolean)
-	 */
+     * Paused activity handler
+     * @see org.apache.cordova.CordovaPlugin#onPause(boolean)
+     */
 	@Override
 	public void onPause(boolean multitasking) {
         Log.d(TAG, "Pause event");
@@ -301,7 +310,7 @@ public class AduDevice extends CordovaPlugin {
 		
 		//onDeviceStateChange();
 	}
-        //Fires on resume
+    //Fires on resume
     // finds the first USB device that matches OnTrak vendor ID 0x0a07 (2567)
     private boolean findAduDevice() {
         HashMap<String, UsbDevice> deviceList = mManager.getDeviceList();
