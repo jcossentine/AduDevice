@@ -37,7 +37,7 @@ public class AduDevice extends CordovaPlugin {
     private static final String ACTION_USB_PERMISSION = "cordova.plugin.adudevice.USB_PERMISSION";
 
     // Vendor and product IDs from: http://www.ontrak.net/Nodll.htm
-    private int VENDOR_ID_ADU = 0x10C4;//was 0a07
+    private int VENDOR_ID_ADU = 0x0a07;
 
     PendingIntent mPermissionIntent;
 
@@ -336,7 +336,6 @@ public class AduDevice extends CordovaPlugin {
 
         return false;
     }
-
 	// /**
 	//  * Request permission the the user for the app to use the USB/serial port
 	//  * @param callbackContext the cordova {@link CallbackContext}
